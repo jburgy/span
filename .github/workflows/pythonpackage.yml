@@ -1,0 +1,21 @@
+name: Python package
+
+on: [push]
+
+env:
+  UV_NO_EDITABLE: 1
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: 3.13
+      - run: uv sync
+      - run: uv run pyright
+      - uses: astral-sh/ruff-action@v3
+      - run: uv run pytest
