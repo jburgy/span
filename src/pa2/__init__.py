@@ -463,6 +463,136 @@ class SecondRiskArray(Base):
     current_delta_business_day = String(125, 126)
 
 
+@cython.cclass
+class ScanningMethod(Base):
+    """Scanning Method (Record Type: "S ")
+
+    >>> record("S 07    20020120250720250702202508202812                                          2")
+    ScanningMethod(code=20, commodity='07', number_of_tiers=1, tier1_ending_month=202507, tier1_starting_month=202507, tier2_ending_month=202812, tier2_starting_month=202508, tier3_ending_month=None, tier3_starting_month=None, tier4_ending_month=None, tier4_starting_month=None, tier5_ending_month=None, tier5_starting_month=None, weighted_futures_method=2)
+    """
+    commodity = String(2, 8)
+    code = Int(8, 10)
+    number_of_tiers = Int(12, 14)
+    tier1_starting_month = Int(14, 20)
+    tier1_ending_month = Int(20, 26)
+    tier2_starting_month = Int(28, 34)
+    tier2_ending_month = Int(34, 40)
+    tier3_starting_month = Int(42, 48)
+    tier3_ending_month = Int(48, 54)
+    tier4_starting_month = Int(56, 62)
+    tier4_ending_month = Int(62, 68)
+    tier5_starting_month = Int(70, 76)
+    tier5_ending_month = Int(76, 82)
+    weighted_futures_method = Int(82, 83)
+
+
+@cython.cclass
+class DailyAdjustmentsRates(Base):
+    """Daily Adjustment Rates / Value Maintenance Rates (Record Type: "V ")
+    
+    >>> record("V CMEGA        202506  202506200000000000000+P0000000000000+P 100100Y100100Y100100GSCIER")
+    DailyAdjustmentsRates(business_date=datetime.date(2025, 6, 20), commodity='GA', day='', exchange='CME', long_discount_or_premium='P', long_maintenance_rate=1.0, long_rate=0.0, month=202506, product_class='GSCIER', reset_long_down_threshold=1.0, reset_long_margin_flag='Y', reset_long_up_threshold=1.0, reset_short_down_threshold=1.0, reset_short_margin_flag='Y', reset_short_up_threshold=1.0, short_maintenance_rate=1.0, short_rate=0.0, short_rate_flag='')
+    """
+    exchange = String(2, 5)
+    commodity = String(5, 15)
+    month = Int(15, 21)
+    day = String(21, 23)
+    business_date = Date(23)
+    long_rate = Float(31, 44, scale=-1e-6)
+    long_discount_or_premium = String(45, 46)
+    short_rate = Float(46, 59, scale=-1e-6)
+    long_discount_or_premium = String(60, 61)
+    short_rate_flag = String(61, 62)
+    long_maintenance_rate = Float(62, 65, scale=1e-2)
+    short_maintenance_rate = Float(65, 68, scale=1e-2)
+    reset_long_margin_flag = String(68, 69)
+    reset_long_down_threshold = Float(69, 72, scale=1e-2)
+    reset_long_up_threshold = Float(72, 75, scale=1e-2)
+    reset_short_margin_flag = String(75, 76)
+    reset_short_down_threshold = Float(76, 79, scale=1e-2)
+    reset_short_up_threshold = Float(79, 82, scale=1e-2)
+    product_class = String(82, 88)
+
+
+@cython.cclass
+class CombinationMarginingMethod(Base):
+    """Combination Margining Method (Record Type: "X ")
+
+    >>> record("X M31        0000000")
+    CombinationMarginingMethod(code='M', commodity='31', price_offset=0.0)
+    """
+
+    code = String(2, 3)  # [S]plit, [D]elta, [M]odified
+    commodity = String(3, 13)
+    price_offset = Float(13, 20)
+
+
+@cython.cclass
+class CombinationProductFamily(Base):
+    """Option on Combination Product Family Definition (Record Type: "Y ")
+
+    >>> record("Y 31        31 ")
+    CombinationProductFamily(commodity='31', option='31')
+    """
+
+    commodity = String(2, 12)
+    option = String(12, 22)
+
+
+@cython.cclass
+class CombinationUnderlyingLegs(Base):
+    """Combination Underlying Legs (Record Type: "Z ")
+
+    >>> record("Z CBT31        I/C  202507         001B010S         FUT202507  0000NL 0000000+")
+    CombinationUnderlyingLegs(combination_type='I/C', commodity='31', day='', exchange='CBT', leg_commodity='S', leg_contract_day='', leg_contract_month=202507, leg_contract_type='FUT', leg_number=1, leg_price=0.0, leg_price_available='N', leg_price_usage='L', leg_ratio=0.0, leg_relationship='B', month=202507)
+    """
+
+    exchange = String(2, 5)
+    commodity = String(5, 15)
+    combination_type = String(15, 20)  # "STRIP", "CAL", or "I/C"
+    month = Int(20, 26)
+    day = String(26, 28)
+    leg_number = Int(35, 38)
+    leg_relationship = String(38, 39)
+    leg_ratio = String(39, 42)
+    leg_commodity = String(42, 52)
+    leg_contract_type = String(52, 55)
+    leg_contract_month = Int(55, 61)
+    leg_contract_day = String(61, 63)
+    leg_ratio = Float(63, 67, scale=1e-4)
+    leg_price_available = String(67, 68)
+    leg_price_usage = String(68, 70)
+    leg_price = Float(70, 77, scale=-1e-6)
+
+
+@cython.cclass
+class SeriesIntracommoditySpreads(Base):
+    """Series to Series Intracommodity Spreads (Record Type: "E ")
+    
+    >>> record("E 17    0000100002502509   010000A2512   020000B2603   010000A")
+    SeriesIntracommoditySpreads(charge_rate=0.00025, commodity='17', leg1_market_side=nan, leg1_month=2509, leg1_ratio=0.01, leg1_remaining='', leg2_market_side=nan, leg2_month=2512, leg2_ratio=0.02, leg2_remaining='', leg3_market_side=nan, leg3_month=2603, leg3_ratio=0.01, leg3_remaining='', leg4_market_side=nan, leg4_month=None, leg4_ratio=nan, leg4_remaining='', priority=1)
+    """
+    commodity = String(2, 8)
+    priority = Int(8, 13)
+    charge_rate = Float(13, 20)
+    leg1_month = Int(20, 24)
+    leg1_remaining = String(24, 27)
+    leg1_ratio = Float(27, 33)
+    leg1_market_side = Float(33, 34)
+    leg2_month = Int(34, 38)
+    leg2_remaining = String(38, 41)
+    leg2_ratio = Float(41, 47)
+    leg2_market_side = Float(47, 48)
+    leg3_month = Int(48, 52)
+    leg3_remaining = String(53, 55)
+    leg3_ratio = Float(55, 61)
+    leg3_market_side = Float(61, 62)
+    leg4_month = Int(62, 66)
+    leg4_remaining = String(66, 69)
+    leg4_ratio = Float(70, 75)
+    leg4_market_side = Float(75, 76)
+
+
 _RECORD_TYPES = {
     "0 ": ExchangeComplexHeader,
     "T ": CurrencyConversion,
@@ -477,6 +607,12 @@ _RECORD_TYPES = {
     "6 ": InterCommoditySpread,
     "81": FirstRiskArray,
     "82": SecondRiskArray,
+    "E ": SeriesIntracommoditySpreads,
+    "S ": ScanningMethod,
+    "V ": DailyAdjustmentsRates,
+    "X ": CombinationMarginingMethod,
+    "Y ": CombinationProductFamily,
+    "Z ": CombinationUnderlyingLegs,
 }
 
 
