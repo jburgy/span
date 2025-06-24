@@ -31,8 +31,9 @@ class Strings:
 
     def __get__(self, obj, objtype) -> tuple[str, ...]:
         return tuple(
-            str(obj[index : index + self.step]).rstrip()
+            s
             for index in range(self.start, self.stop, self.step)
+            if (s := str(obj[index : index + self.step]).rstrip())
         )
 
 
@@ -56,13 +57,13 @@ class Int:
 class Float:
     start: cython.int
     stop: cython.int
-    scale: cython.float
+    scale: cython.double
 
     def __init__(
         self,
         start: cython.int,
         stop: cython.int,
-        scale: cython.float = 1e-6,
+        scale: cython.double = 1e-6,
     ):
         self.start = start
         self.stop = stop
@@ -246,6 +247,21 @@ class SecondCombinedCommodity(Base):
 
 
 @cython.cclass
+class RequiredSpreads(Base):
+    """Required Spreads (Subrecord Type "C " of the type "3 " record)
+
+    >>> record("C 06    1001030000100011401A021502B031601A")
+    RequiredSpreads(charge_rate=9.999999999999999e-05, commodity='06', legs=('011401A', '021502B', '031601A'), number_of_legs=3, priority=1)
+    """
+
+    commodity = String(2, 8)
+    priority = Int(10, 12)
+    number_of_legs = Int(12, 14)
+    charge_rate = Float(14, 21)
+    legs = Strings(21, 77, 7)
+
+
+@cython.cclass
 class ThirdCombinedCommodity(Base):
     """Third Combined Commodity Record (Record Type: "4 ")
 
@@ -272,6 +288,80 @@ class ThirdCombinedCommodity(Base):
 
 
 @cython.cclass
+class ArrayCalculationParameters(Base):
+    """Array Calculation Parameters (Subrecord Type "B " of the type "4 " record)
+
+    >>> record("B CBTZSC       OOC202507   202507   999999992500000000600030000330000000000000000000001000020250620ZSC       BC00000000Y0000035-0005000000000000 00 00 010000000000P 00")
+    ArrayCalculationParameters(base_volatility=99.999999, base_volatility_exponent=0, commodity='ZSC', contract_day='', contract_month=202507, contract_type='OOC', coupon=0.0, delta_scaling_factor=1.0, discount_factor=1.0, equivalent_position_factor=nan, equivalent_position_factor_exponent=0, exchange='CBT', expiration_date=datetime.date(2025, 6, 20), expiration_price=-0.0035, expiration_price_flag='Y', extreme_move_covered_fraction=3.3000000000000003, extreme_move_multiplier=3.0, future_price_scan_range=0.6, interest_rate=0.0, lookahead_time=0.0, option_day='', option_month=202507, price_scan_range_exponent=0, price_scan_range_quotation='', pricing_model='BC', swap_value_factor=50000.0, swap_value_factor_exponent=0, time_to_expiration=0.0, underlying_commodity='ZSC', variable_tick='0', volatility_scan_range=2500000000.60003, volatility_scan_range_exponent=0, volatility_scan_range_quotation='P')
+    """
+
+    exchange = String(2, 5)
+    commodity = String(5, 15)
+    contract_type = String(15, 18)
+    contract_month = Int(18, 24)
+    contract_day = String(24, 26)
+    option_month = Int(27, 33)
+    option_day = String(33, 35)
+    base_volatility = Float(36, 44)
+    volatility_scan_range = Float(44, 62, scale=1e-8)
+    future_price_scan_range = Float(52, 57, scale=1e-3)
+    extreme_move_multiplier = Float(57, 62, scale=1e-3)
+    extreme_move_covered_fraction = Float(62, 67, scale=1e-3)
+    interest_rate = Float(67, 72, scale=1e-3)
+    time_to_expiration = Float(72, 79)
+    lookahead_time = Float(79, 85)
+    delta_scaling_factor = Float(85, 91, scale=1e-4)
+    expiration_date = Date(91)
+    underlying_commodity = String(99, 109)
+    pricing_model = String(109, 111)
+    coupon = Float(111, 119)
+    expiration_price_flag = String(119, 120)
+    expiration_price = Float(120, 127, scale=-1e-4)
+    swap_value_factor = Float(128, 142)
+    swap_value_factor_exponent = Float(142, 144, scale=-1)
+    base_volatility_exponent = Float(145, 147, scale=-1)
+    volatility_scan_range_exponent = Float(148, 150, scale=-1)
+    discount_factor = Float(151, 163, scale=1e-10)
+    volatility_scan_range_quotation = String(163, 164)  # [A]bsolute or [P]ercentage
+    price_scan_range_quotation = String(164, 165)  # [A]bsolute or [P]ercentage
+    price_scan_range_exponent = Float(165, 167, scale=1)
+    equivalent_position_factor = Float(143, 157)
+    equivalent_position_factor_exponent = Int(157, 159)
+    variable_tick = String(160, 161)
+
+
+@cython.cclass
+class PriceConversionParameters(Base):
+    """Price Conversion Parameters (Subrecord Type "P " of the type "4 " record)
+
+    >>> record("P CBT06        OOFSOYBEAN MEAL OP003000  000010000000000000000001USD$STD 00AMERSOYBEAN MEAL OPTIONS Long dated    YFEQTY DELIV                 0000001000000000  ")
+    PriceConversionParameters(commodity='06', contract_type='OOF', contract_value_factor=10000000.0, contract_value_factor_exponent=0, echange='CBT', exercise='AMER', futures_per_contract=1, long_name='SOYBEAN MEAL OPTIONS Long dated', money='F', positionable='Y', price_quotation='STD', settlement='DELIV', settlement_currency_code='$', settlement_currency_iso='USD', settlement_price_alignment='', settlement_price_decimal=3, short_name='SOYBEAN MEAL OP', standard_cabinet_option_value=0.0, strike_price_alignment='', strike_price_decimal=0, valuation='EQTY')
+    """
+
+    echange = String(2, 5)
+    commodity = String(5, 15)
+    contract_type = String(15, 18)
+    short_name = String(18, 33)
+    settlement_price_decimal = Int(33, 36)
+    strike_price_decimal = Int(36, 39)
+    settlement_price_alignment = String(39, 40)
+    strike_price_alignment = String(40, 41)
+    contract_value_factor = Float(41, 55, scale=1e-2)
+    standard_cabinet_option_value = Float(55, 63)
+    futures_per_contract = Int(63, 65)
+    settlement_currency_iso = String(65, 68)
+    settlement_currency_code = String(68, 69)
+    price_quotation = String(69, 72)
+    contract_value_factor_exponent = Int(72, 75)
+    exercise = String(75, 79)
+    long_name = String(79, 114)
+    positionable = String(114, 115)
+    money = String(115, 116)  # [N]ominal, [I]nterest, [F]utures
+    valuation = String(116, 121)
+    settlement = String(121, 126)
+
+
+@cython.cclass
 class CommodityGroup(Base):
     """Commodity Group (Record Type: "5 ")
 
@@ -284,11 +374,51 @@ class CommodityGroup(Base):
 
 
 @cython.cclass
+class InterCommoditySpread(Base):
+    """Inter-Commodity Spread (Record Type: "6 ")
+
+    >>> record("6 ALL00010980000NYMNNY-HH 0010000ANYMNNY-HP 0010000B                                    04NYMNNY-NG          S00100000001")
+    InterCommoditySpread(commodity='ALL', credit_rate=0.98, group='S', leg1_commodity='NY-HH', leg1_exchange='NYM', leg1_ratio=1.0, leg1_required='N', leg1_side='A', leg2_commodity='NY-HP', leg2_exchange='NYM', leg2_ratio=1.0, leg2_required='N', leg2_side='B', leg3_commodity='', leg3_exchange='', leg3_ratio=nan, leg3_required='', leg3_side='', leg4_commodity='', leg4_exchange='', leg4_ratio=nan, leg4_required='', leg4_side='', method='04', minimum_legs=1, priority=1, target_commodity='NY-NG', target_delta=1.0, target_exchange='NYM', target_required='N')
+    """
+
+    commodity = String(2, 5)
+    priority = Int(5, 9)
+    credit_rate = Float(9, 16)
+    leg1_exchange = String(16, 19)
+    leg1_required = String(19, 20)
+    leg1_commodity = String(20, 26)
+    leg1_ratio = Float(26, 33, scale=1e-4)
+    leg1_side = String(33, 34)
+    leg2_exchange = String(34, 37)
+    leg2_required = String(37, 38)
+    leg2_commodity = String(38, 44)
+    leg2_ratio = Float(44, 51, scale=1e-4)
+    leg2_side = String(51, 52)
+    leg3_exchange = String(52, 55)
+    leg3_required = String(55, 56)
+    leg3_commodity = String(56, 62)
+    leg3_ratio = Float(62, 69, scale=1e-4)
+    leg3_side = String(69, 70)
+    leg4_exchange = String(70, 73)
+    leg4_required = String(73, 74)
+    leg4_commodity = String(74, 80)
+    leg4_ratio = Float(80, 87, scale=1e-4)
+    leg4_side = String(87, 88)
+    method = String(88, 90)
+    target_exchange = String(90, 93)
+    target_required = String(93, 94)
+    target_commodity = String(94, 100)
+    group = String(109, 110)
+    target_delta = Float(110, 117, scale=1e-4)
+    minimum_legs = Int(117, 121)
+
+
+@cython.cclass
 class FirstRiskArray(Base):
     """First Risk Array (Record Type: "81")
 
     >>> record("81CBT06        06        FUT 202507            000000000000+00000+00567-00567-00567+00567+01133-01133-01133+00000000284100N")
-    FirstRiskArray(commodity='06', contract_day='', contract_month='202507', contract_type='FUT', exchange='CBT', option_day='', option_month='', option_right='', option_strike='0000000', risk=(0.0, 0.0, -0.0567, -0.0567, 0.0567, 0.0567, -0.11330000000000001, -0.11330000000000001, 0.11330000000000001), settlement_flag='N', settlement_price=2.841e-07, underlying_commodity='06')
+    FirstRiskArray(commodity='06', contract_day='', contract_month=202507, contract_type='FUT', exchange='CBT', option_day='', option_month=None, option_right='', option_strike='0000000', risk=(0.0, 0.0, -0.0567, -0.0567, 0.0567, 0.0567, -0.11330000000000001, -0.11330000000000001, 0.11330000000000001), settlement_flag='N', settlement_price=2.841e-07, underlying_commodity='06')
     """
 
     exchange = String(2, 5)
@@ -296,9 +426,9 @@ class FirstRiskArray(Base):
     underlying_commodity = String(15, 25)
     contract_type = String(25, 28)
     option_right = String(28, 29)
-    contract_month = String(29, 35)
+    contract_month = Int(29, 35)
     contract_day = String(35, 37)
-    option_month = String(38, 44)
+    option_month = Int(38, 44)
     option_day = String(44, 46)
     option_strike = String(47, 54)
     risk = Risk(54, 108)
@@ -311,7 +441,7 @@ class SecondRiskArray(Base):
     """Second Risk Array (Record Type: "82")
 
     >>> record("82CBT06        06        OOFC202507   202507   000014500000+00000+00000+00000+00000+00000+00000+00000+002500000139100++10000+C")
-    SecondRiskArray(commodity='06', composite_delta=0.0, contract_day='', contract_month='202507', contract_type='OOF', current_delta=10.0, current_delta_business_day='C', exchange='CBT', implied_volatility=0.25, option_day='', option_month='202507', option_right='C', option_strike='0000145', risk=(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0), settlement_price=0.1391, strike_sign='+', underlying_commodity='06')
+    SecondRiskArray(commodity='06', composite_delta=0.0, contract_day='', contract_month=202507, contract_type='OOF', current_delta=10.0, current_delta_business_day='C', exchange='CBT', implied_volatility=0.25, option_day='', option_month=202507, option_right='C', option_strike='0000145', risk=(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0), settlement_price=0.1391, strike_sign='+', underlying_commodity='06')
     """
 
     exchange = String(2, 5)
@@ -319,9 +449,9 @@ class SecondRiskArray(Base):
     underlying_commodity = String(15, 25)
     contract_type = String(25, 28)
     option_right = String(28, 29)
-    contract_month = String(29, 35)
+    contract_month = Int(29, 35)
     contract_day = String(35, 37)
-    option_month = String(38, 44)
+    option_month = Int(38, 44)
     option_day = String(44, 46)
     option_strike = String(47, 54)
     risk = Risk(54, 96)
@@ -339,13 +469,18 @@ _RECORD_TYPES = {
     "1 ": ExchangeHeader,
     "2 ": FirstCombinedCommodity,
     "3 ": SecondCombinedCommodity,
+    "C ": RequiredSpreads,
     "4 ": ThirdCombinedCommodity,
+    "B ": ArrayCalculationParameters,
+    "P ": PriceConversionParameters,
     "5 ": CommodityGroup,
+    "6 ": InterCommoditySpread,
     "81": FirstRiskArray,
     "82": SecondRiskArray,
 }
 
 
+@cython.cfunc
 def record(s: str) -> Base:
     """Create PA2 record based on Record ID (first two characters)"""
     return _RECORD_TYPES[s[:2]](s)
