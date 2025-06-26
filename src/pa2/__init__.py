@@ -206,10 +206,10 @@ class FirstCombinedCommodity(Base):
     """First Combined Commodity Report (Subrecord Type: "2 ")
 
     >>> record("2 CBT 26    0USD$PN   26        FUT   26        OOF   59        OOF   WT1       OOF   VT1       OOF   GT1       OOF")
-    FirstCombinedCommodity(code='26', combination_margin_method='', commodity_1='26', commodity_2='26', commodity_3='59', commodity_4='WT1', commodity_5='VT1', commodity_6='GT1', contract_type_1='FUT', contract_type_2='OOF', contract_type_3='OOF', contract_type_4='OOF', contract_type_5='OOF', contract_type_6='OOF', echange='CBT', limit_option_value='N', option_margin_style='P', performance_bond_currency_code='$', performance_bond_currency_iso='USD')
+    FirstCombinedCommodity(code='26', combination_margin_method='', commodity_1='26', commodity_2='26', commodity_3='59', commodity_4='WT1', commodity_5='VT1', commodity_6='GT1', contract_type_1='FUT', contract_type_2='OOF', contract_type_3='OOF', contract_type_4='OOF', contract_type_5='OOF', contract_type_6='OOF', exchange='CBT', limit_option_value='N', option_margin_style='P', performance_bond_currency_code='$', performance_bond_currency_iso='USD')
     """
 
-    echange = String(2, 5)
+    exchange = String(2, 5)
     code = String(6, 12)
     performance_bond_currency_iso = String(13, 16)
     performance_bond_currency_code = String(16, 17)
@@ -335,10 +335,10 @@ class PriceConversionParameters(Base):
     """Price Conversion Parameters (Subrecord Type "P " of the type "4 " record)
 
     >>> record("P CBT06        OOFSOYBEAN MEAL OP003000  000010000000000000000001USD$STD 00AMERSOYBEAN MEAL OPTIONS Long dated    YFEQTY DELIV                 0000001000000000  ")
-    PriceConversionParameters(commodity='06', contract_type='OOF', contract_value_factor=10000000.0, contract_value_factor_exponent=0, echange='CBT', exercise='AMER', futures_per_contract=1, long_name='SOYBEAN MEAL OPTIONS Long dated', money='F', positionable='Y', price_quotation='STD', settlement='DELIV', settlement_currency_code='$', settlement_currency_iso='USD', settlement_price_alignment='', settlement_price_decimal=3, short_name='SOYBEAN MEAL OP', standard_cabinet_option_value=0.0, strike_price_alignment='', strike_price_decimal=0, valuation='EQTY')
+    PriceConversionParameters(commodity='06', contract_type='OOF', contract_value_factor=10000000.0, contract_value_factor_exponent=0, exchange='CBT', exercise='AMER', futures_per_contract=1, long_name='SOYBEAN MEAL OPTIONS Long dated', money='F', positionable='Y', price_quotation='STD', settlement='DELIV', settlement_currency_code='$', settlement_currency_iso='USD', settlement_price_alignment='', settlement_price_decimal=3, short_name='SOYBEAN MEAL OP', standard_cabinet_option_value=0.0, strike_price_alignment='', strike_price_decimal=0, valuation='EQTY')
     """
 
-    echange = String(2, 5)
+    exchange = String(2, 5)
     commodity = String(5, 15)
     contract_type = String(15, 18)
     short_name = String(18, 33)
@@ -616,7 +616,7 @@ _RECORD_TYPES = {
 }
 
 
-@cython.cfunc
+@cython.ccall
 def record(s: str) -> Base:
     """Create PA2 record based on Record ID (first two characters)"""
     return _RECORD_TYPES[s[:2]](s)
