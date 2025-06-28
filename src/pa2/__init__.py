@@ -468,21 +468,11 @@ class ScanningMethod(Base):
     """Scanning Method (Record Type: "S ")
 
     >>> record("S 07    20020120250720250702202508202812                                          2")
-    ScanningMethod(code=20, commodity='07', number_of_tiers=1, tier1_ending_month=202507, tier1_starting_month=202507, tier2_ending_month=202812, tier2_starting_month=202508, tier3_ending_month=None, tier3_starting_month=None, tier4_ending_month=None, tier4_starting_month=None, tier5_ending_month=None, tier5_starting_month=None, weighted_futures_method=2)
+    ScanningMethod(code=20, commodity='07', tiers=((202507, 202507), (202508, 202812)), weighted_futures_method=2)
     """
     commodity = String(2, 8)
     code = Int(8, 10)
-    number_of_tiers = Int(12, 14)
-    tier1_starting_month = Int(14, 20)
-    tier1_ending_month = Int(20, 26)
-    tier2_starting_month = Int(28, 34)
-    tier2_ending_month = Int(34, 40)
-    tier3_starting_month = Int(42, 48)
-    tier3_ending_month = Int(48, 54)
-    tier4_starting_month = Int(56, 62)
-    tier4_ending_month = Int(62, 68)
-    tier5_starting_month = Int(70, 76)
-    tier5_ending_month = Int(76, 82)
+    tiers = Spans(12, 82)
     weighted_futures_method = Int(82, 83)
 
 
